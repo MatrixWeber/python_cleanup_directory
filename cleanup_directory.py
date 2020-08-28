@@ -55,7 +55,7 @@ while True:
             pathToFileToMove = pathOfDirToLookFor + '/' + fileNameStr
             if '.png' in fileExtension or '.jpg' in fileExtension:
                 dest = picturePath
-            elif '.zip' in fileExtension or '.7z' in fileExtension or '.tgz' in fileExtension or '.tar.gz' in fileExtension:
+            elif '.zip' in fileExtension or '.7z' in fileExtension or '.gz' in fileExtension or '.tar' in fileExtension:
                 dest = zipPath
             elif '.sof' in fileExtension or '.sopcinfo' in fileExtension:
                 dest = fpgaPath
