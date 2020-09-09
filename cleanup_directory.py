@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import os 
 import shutil
 from time import sleep
@@ -13,10 +15,12 @@ pathOfDirToLookFor = '/home/z002wydr/Downloads'
 #picturePath = input('Path to the directory to store your pictures: ')
 picturePath = '/home/z002wydr/Pictures/'
 
-videoPath = input('Path to the directory to store your videos: ')
+#videoPath = input('Path to the directory to store your videos: ')
+videoPath = '/home/z002wydr/Videos'
 
 #docPath = input('Path to the directory to store your doc files: ')
 docPath = '/home/z002wydr/Documents/new/microsoft/doc/'
+pdfPath = '/home/z002wydr/Documents/new/pdf/'
 
 #pptPath = input('Path to the directory to store your ppt files: ')
 pptPath = '/home/z002wydr/Documents/new/microsoft/ppt/'
@@ -27,11 +31,15 @@ xmlPath = '/home/z002wydr/xml/'
 #txtPath = input('Path to the directory to store your txt files: ')
 txtPath = '/home/z002wydr/Documents/new/txt/'
 
+defaultDocPath = '/home/z002wydr/Documents/new/'
+
 #excelPath = input('Path to the directory to store your excel files: ')
 excelPath = '/home/z002wydr/Documents/new/microsoft/excel/'
 
 #zipPath = input('Path to the directory to store your zip files: ')
-zipPath = '/home/z002wydr/tmp/'
+zipPath = '/home/z002wydr/zip/'
+
+tmpPath = '/home/z002wydr/tmp/'
 
 #fpgaPath = input('Path to the directory to store your fpga files: ')
 fpgaPath = '/home/z002wydr/workspace/pluscontrol_master/bin/fpga/'
@@ -44,7 +52,7 @@ while True:
     if dir_exists(pathOfDirToLookFor):
         for file in os.listdir(pathOfDirToLookFor):
             fileNameStr = str(file)
-            fileExtension = pathlib.Path(fileNameStr).suffix
+            fileExtension = pathlib.Path(fileNameStr).suffix.lower()
             if '.crdownload' in fileExtension:
                 if oldFile not in fileNameStr:
                     if checkIfVerbose():
@@ -55,12 +63,14 @@ while True:
             pathToFileToMove = pathOfDirToLookFor + '/' + fileNameStr
             if '.png' in fileExtension or '.jpg' in fileExtension:
                 dest = picturePath
-            elif '.zip' in fileExtension or '.7z' in fileExtension or '.gz' in fileExtension or '.tar' in fileExtension:
+            elif '.zip' in fileExtension or '.7z' in fileExtension or '.gz' in fileExtension or '.tar' in fileNameStr.lower():
                 dest = zipPath
             elif '.sof' in fileExtension or '.sopcinfo' in fileExtension:
                 dest = fpgaPath
             elif '.doc' in fileExtension or '.docx' in fileExtension:
-                dest = docPath
+                dest = docPath            
+            elif '.pdf' in fileExtension:
+                dest = pdfPath
             elif '.ppt' in fileExtension or '.pptx' in fileExtension:
                 dest = pptPath            
             elif '.xml' in fileExtension:
@@ -70,9 +80,14 @@ while True:
             elif '.xls' in fileExtension or '.xlsx' in fileExtension:
                 dest = excelPath
             elif '.deb' in fileExtension or '.rpm' in fileExtension:
-                dest = linuxDebPath
+                dest = linuxDebPath            
+            elif '.odp' in fileExtension:
+                dest = defaultDocPath + 'linux/odp'
+            elif '.mp4' in fileExtension or '.mov' in fileExtension:
+                dest = videoPath
             else:
                 continue
+                #dest = tmpPath
             if not os.path.exists(dest):
                 os.makedirs(dest)
             destFile = dest + fileNameStr
