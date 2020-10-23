@@ -1,6 +1,7 @@
 import subprocess, os, platform
 from write_msg_to_desktop import notify
 from verbose import checkIfVerbose
+import shutil
 
 def askQuestionAndPerform(destDirection, fileName, sayYesToString = '/][??05436'):
     destFile = destDirection + fileName
@@ -9,9 +10,12 @@ def askQuestionAndPerform(destDirection, fileName, sayYesToString = '/][??05436'
     else:
         if checkIfVerbose():
             notify('Cleanup Script', 'Sure you wanna delete that file: ' + destFile + '?\nChoose option: y to delete, n to hold, o to open with a default program or r to rename file\n')
-        deleteOptions = input("Sure you wanna delete that file: " + destFile + "?\nChoose option: y to delete, n to hold, o to open with a default program or r to rename file\n")
+        deleteOptions = input("Sure you wanna delete that file: " + destFile + "?\nChoose option: y to delete, n to hold, o to open with a default program,\n r to rename file or a to delete all in a directory\n")
     if "yes" in deleteOptions or "y" in deleteOptions:
-        os.remove(destFile)
+        if os.path.isdir(destFile):
+            shutil.rmtree(destFile)
+        else:
+            os.remove(destFile)
         if checkIfVerbose():
             notify('Cleanup Script', destFile + ': was moved to trash\n')
     elif "o" in deleteOptions or "open" in deleteOptions:
@@ -27,3 +31,7 @@ def askQuestionAndPerform(destDirection, fileName, sayYesToString = '/][??05436'
             notify('Cleanup Script', 'Enter new file name!\n')
         newFileName = input("Enter new file name!\n")
         os.rename(destFile, destDirection + newFileName)
+    # elif "a" in deleteOptions:
+    #     if checkIfVerbose():
+    #         notify('Cleanup Script', 'Remove all files from dir!\n')
+    #     os.rename(destFile, destDirection + newFileName)

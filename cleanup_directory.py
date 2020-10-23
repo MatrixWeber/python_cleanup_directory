@@ -42,7 +42,7 @@ zipPath = '/home/z002wydr/zip/'
 tmpPath = '/home/z002wydr/tmp/'
 
 #fpgaPath = input('Path to the directory to store your fpga files: ')
-fpgaPath = '/home/z002wydr/workspace/pluscontrol_master/bin/fpga/'
+fpgaPath = '/home/z002wydr/workspace/pluscontrol_bugfix/bin/fpga/'
 
 linuxDebPath = '/home/z002wydr/deb/'
 
@@ -81,12 +81,12 @@ while True:
                 dest = excelPath
             elif '.deb' in fileExtension or '.rpm' in fileExtension:
                 dest = linuxDebPath            
-            elif '.odp' in fileExtension:
-                dest = defaultDocPath + 'linux/odp'
+            elif '.odp' in fileExtension or '.ods' in fileExtension or '.odt' in fileExtension or '.odg' in fileExtension:
+                dest = defaultDocPath + 'linux/' + fileExtension
             elif '.mp4' in fileExtension or '.mov' in fileExtension:
                 dest = videoPath
             else:
-                continue
+                dest = defaultDocPath + fileExtension.replace(".", "")
                 #dest = tmpPath
             if not os.path.exists(dest):
                 os.makedirs(dest)
