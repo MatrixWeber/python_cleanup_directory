@@ -6,8 +6,8 @@ import fnmatch
 from check_if_dir_exists import dir_exists
 import argparse
 
-path_of_dir_to_look_for = r'C:\Users\SW\Desktop\MicroConsult\Clean Code\OOPFCPP'
-dir_names_to_filter = ['Release', 'Debug', '.vs', '.vscode', 'out', 'cmake-build-debug-cygwin', 'cmake-build-debug-visual-studio', 'cmake-build-debug', 'cmake-build-release', 'build', '.idea', 'x64']
+path_of_dir_to_look_for = r'C:\Users\AW\Desktop\MicroConsult\CleanCode_C\Exercises'
+dir_names_to_filter = ['Release', 'Debug', '.vs', '.vscode', 'out', 'bin', 'cmake-build-debug-cygwin', 'cmake-build-debug-visual-studio', 'cmake-build-debug', 'cmake-build-release', 'build', '.idea', 'x64']
 
 
 def remove_directories_from_path(path_of_dir, dir_name_to_filter):
