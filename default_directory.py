@@ -1,0 +1,1 @@
+pathToDefaultDirectory = '/home/z002wydr/cleanup_directory/'
