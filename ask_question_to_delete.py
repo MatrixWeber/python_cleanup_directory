@@ -13,7 +13,6 @@ def askQuestionAndPerform(destDirection, fileName, verbose, sayYesToString = '/]
     else:
         if verbose:
             notify('Cleanup Script', 'Sure you wanna replace that file: ' + destFile + ' ???\n' + chooseString + '\n')
-            print('Cleanup Script', 'Sure you wanna replace that file: ' + destFile + ' ???\n' + chooseString + '\n')
         deleteOptions = input('Sure you wanna replace that file: ' + destFile + ' ???\n' + chooseString + '\n')
     if "yes" in deleteOptions or "y" in deleteOptions:
         if os.path.isdir(destFile):
