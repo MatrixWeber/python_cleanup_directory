@@ -1,1 +1,1 @@
-pathToDefaultDirectory = '/home/z002wydr/cleanup_directory/'
+path_to_default_directory = '/home/z002wydr/cleanup_directory/'

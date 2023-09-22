@@ -2,16 +2,17 @@
 
 from time import strftime, localtime
 import os
-from ask_question_to_delete import  askQuestionAndPerform
+from ask_question_and_perform_action import ask_question_and_perform_action
 from check_if_dir_exists import dir_exists
-from default_directory import pathToDefaultDirectory
+from default_directory import path_to_default_directory
 import argparse
+
 
 def parse_command_line():
     global args
     # Parse the command-line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cleanup_dir', type=str, nargs='?', default=pathToDefaultDirectory,
+    parser.add_argument('--cleanup_dir', type=str, nargs='?', default=path_to_default_directory,
                         help="The main cleanup directory e.g. '/home/z002wydr/cleanup_directory/'")
     parser.add_argument('v', type=str, help='verbose mode including notifications', nargs='?', default=None)
     args = parser.parse_args()
@@ -24,7 +25,8 @@ dirPath = args.cleanup_dir
 
 yearAndDateStr = '2023-09-01-15-30-00'
 monthAndYearList = yearAndDateStr.split('-')
-monthAndYear = monthAndYearList[0] + monthAndYearList[1]+ monthAndYearList[2]+ monthAndYearList[3]+ monthAndYearList[4]+ monthAndYearList[5]
+monthAndYear = monthAndYearList[0] + monthAndYearList[1] + monthAndYearList[2] + monthAndYearList[3] + monthAndYearList[
+    4] + monthAndYearList[5]
 
 if dir_exists(dirPath):
     for file in os.listdir(dirPath):
@@ -40,12 +42,12 @@ if dir_exists(dirPath):
                 splitTime = monthAndYearOfFile[1].split(":")
                 dayMonthYearAndTimeOfFile = monthAndYearOfFile[0] + splitTime[0] + splitTime[1] + splitTime[2]
                 if dayMonthYearAndTimeOfFile < monthAndYear:
-                    print("Last Modified Time : ", modificationTime )
-                    askQuestionAndPerform(destFile + "/", file, False, 'Bildschirmfoto')
+                    print("Last Modified Time : ", modificationTime)
+                    ask_question_and_perform_action(None, destFile + "/", file, False, None, 'Bildschirmfoto')
         modTimesinceEpoc = os.path.getmtime(destFile)
         modificationTime = strftime('%Y-%m-%d %H:%M:%S', localtime(modTimesinceEpoc))
         monthAndYearOfFileList = modificationTime.split('-')
         monthAndYearOfFile = monthAndYearOfFileList[0] + monthAndYearOfFileList[1] + monthAndYearOfFileList[2]
         if monthAndYearOfFile < monthAndYear:
-            print("Last Modified Time : ", modificationTime )
-            askQuestionAndPerform(dirPath, fileNameStr, False, 'Bildschirmfoto')
+            print("Last Modified Time : ", modificationTime)
+            ask_question_and_perform_action(None, dirPath, fileNameStr, False,  None, 'Bildschirmfoto')
