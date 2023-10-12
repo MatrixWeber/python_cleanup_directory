@@ -43,11 +43,11 @@ if dir_exists(dirPath):
                 dayMonthYearAndTimeOfFile = monthAndYearOfFile[0] + splitTime[0] + splitTime[1] + splitTime[2]
                 if dayMonthYearAndTimeOfFile < monthAndYear:
                     print("Last Modified Time : ", modificationTime)
-                    ask_question_and_perform_action(None, destFile + "/", file, False, None, 'Bildschirmfoto')
+                    ask_question_and_perform_action(None, destFile + "/", file, False, None)
         modTimesinceEpoc = os.path.getmtime(destFile)
         modificationTime = strftime('%Y-%m-%d %H:%M:%S', localtime(modTimesinceEpoc))
         monthAndYearOfFileList = modificationTime.split('-')
         monthAndYearOfFile = monthAndYearOfFileList[0] + monthAndYearOfFileList[1] + monthAndYearOfFileList[2]
         if monthAndYearOfFile < monthAndYear:
             print("Last Modified Time : ", modificationTime)
-            ask_question_and_perform_action(None, dirPath, fileNameStr, False,  None, 'Bildschirmfoto')
+            ask_question_and_perform_action(None, dirPath, fileNameStr, False,  None)
