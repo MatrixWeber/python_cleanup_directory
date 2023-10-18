@@ -2,6 +2,7 @@
 
 import os
 import shutil
+import zipfile
 from time import sleep
 from ask_question_and_perform_action import ask_question_and_perform_action
 from write_msg_to_desktop import notify  # , speek
@@ -10,19 +11,9 @@ from check_if_dir_exists import dir_exists
 import pathlib
 from default_directory import path_to_default_directory
 import argparse
-import subprocess
 import tarfile
 from tqdm import tqdm
-
-
-def extract_tar_with_progress(tar_file_path, output_directory):
-    with tarfile.open(tar_file_path, 'r:gz') as tar:
-        members = tar.getmembers()
-        total_files = len(members)
-
-        for member in tqdm(members, desc="Extracting", unit="file"):
-            tar.extract(member, output_directory)
-
+import py7zr
 
 pathOfDirToLookFor = '/home/z002wydr/Downloads/'
 
@@ -99,15 +90,82 @@ file_extension_paths = {
 }
 
 
+def ask_and_delete_file(dest_file_path):
+    delete_options = input('Sure you want to remove this file: ' + dest_file_path + ' ???\n' + 'y/n' + '\n')
+    if "yes" in delete_options or "y" in delete_options:
+        if os.path.isdir(dest_file_path):
+            shutil.rmtree(dest_file_path)
+        else:
+            os.remove(dest_file_path)
+        if verbose:
+            notify('Cleanup Script', 'File: ' + dest_file_path + ' was removed')
+            print('File: ' + dest_file_path + ' was removed')
+
+
+def extract_zip_file(file_path, output_path):
+    with zipfile.ZipFile(file_path) as zf:
+        for member in tqdm(zf.infolist(), desc='Extracting '):
+            try:
+                zf.extract(member, output_path)
+            except zipfile.error as e:
+                pass
+    if verbose:
+        ask_and_delete_file(file_path)
+
+
+def extract_7zip_file(file_path, output_path):
+    with py7zr.SevenZipFile(file_path, mode='r') as archive:
+        files = archive.header.files_info.files
+        if verbose:
+            file_names = []
+            for file in files:
+                file_names.append(file['filename'])
+            print('Extracting Files:\n' + '\n\t'.join(file_names))
+            print('...', end=" ", flush=True)
+        archive.extractall(path=output_path)
+        for file in files:
+            file_name = file['filename']
+            file_extension = pathlib.Path(file_name).suffix.lower()
+            if '.zip' in file_extension:
+                extract_zip_file(output_path + file_name, output_path + files[0].file['filename'])
+            elif '.gz' in file_extension:
+                extract_tar_with_progress(output_path + file_name, output_path)
+            elif '.7z' in file_extension:
+                extract_7zip_file(output_path + file_name, output_path)
+        if verbose:
+            print("finished!")
+            ask_and_delete_file(file_path)
+
+
+def extract_tar_with_progress(tar_file_path, output_path):
+    with tarfile.open(tar_file_path, 'r:gz') as tar:
+        members = tar.getmembers()
+        total_files = len(members)
+
+        for member in tqdm(members, desc="Extracting", unit="file"):
+            tar.extract(member, output_path)
+    if verbose:
+        ask_and_delete_file(tar_file_path)
+
+def print_extracting_file_name(dest_file_path):
+    if verbose:
+        notify('Cleanup Script',
+               "Extracting file name " + dest_file_path + " ...\n")
+        print("Extracting file name " + dest_file_path + " ...\n")
+
+
 def move_files_and_extract(source_file_path, dest_file_path):
     shutil.move(source_file_path, dest_file_path)
     if args.extract:
-        if verbose:
-            notify('Cleanup Script',
-                   "Extracting file name " + dest_file_path + " ...\n")
-            print("Extracting file name " + dest_file_path + " ...\n")
-        extract_tar_with_progress(dest_file_path, tar_path)
-
+        if '.gz' in dest_file_path:
+            print_extracting_file_name(dest_file_path)
+            extract_tar_with_progress(dest_file_path, tar_path)
+        elif '.zip' in dest_file_path:
+            print_extracting_file_name(dest_file_path)
+            extract_zip_file(dest_file_path, zip_path)
+        elif '.7z' in dest_file_path:
+            print_extracting_file_name(dest_file_path)
+            extract_7zip_file(dest_file_path, zip_path)
 
 def loop_over_all_file_in_given_dir(source_dir):
     global old_file
