@@ -64,8 +64,7 @@ file_extension_paths = {
     '.jpg': picture_path,
     '.zip': zip_path,
     '.7z': zip_path,
-    '.tar': tar_path,
-    '.gz': tar_path,
+    '.gz': zip_path,
     '.sof': fpga_path,
     '.sopcinfo': fpga_path,
     '.bin': bin_path,
@@ -88,6 +87,12 @@ file_extension_paths = {
     '.mp4': video_path,
     '.mov': video_path,
 }
+
+
+def extruct_filename_from_path_wihtout_extension(file_path):
+    path = pathlib.Path(file_path)
+    file_name_without_extension = path.stem
+    return file_name_without_extension
 
 
 def ask_and_delete_file(dest_file_path):
@@ -143,9 +148,13 @@ def extract_tar_with_progress(tar_file_path, output_path):
         total_files = len(members)
 
         for member in tqdm(members, desc="Extracting", unit="file"):
-            tar.extract(member, output_path)
+            file_name_without_extension = extruct_filename_from_path_wihtout_extension(tar_file_path)
+            dest_path = output_path + file_name_without_extension
+            tar.extract(member, dest_path)
+            check_for_extension_and_extract(dest_path + "/" + member.name, (dest_path + "/" + member.name).rsplit('.')[0] + '.' + (dest_path + "/" + member.name).rsplit('.')[1])
     if verbose:
         ask_and_delete_file(tar_file_path)
+
 
 def print_extracting_file_name(dest_file_path):
     if verbose:
@@ -157,17 +166,26 @@ def print_extracting_file_name(dest_file_path):
 def move_files_and_extract(source_file_path, dest_file_path):
     shutil.move(source_file_path, dest_file_path)
     if args.extract:
-        if '.gz' in dest_file_path:
-            print_extracting_file_name(dest_file_path)
-            extract_tar_with_progress(dest_file_path, tar_path)
-        elif '.zip' in dest_file_path:
-            print_extracting_file_name(dest_file_path)
-            extract_zip_file(dest_file_path, zip_path)
-        elif '.7z' in dest_file_path:
-            print_extracting_file_name(dest_file_path)
-            extract_7zip_file(dest_file_path, zip_path)
+        check_for_extension_and_extract(dest_file_path)
 
-def loop_over_all_file_in_given_dir(source_dir):
+
+def check_for_extension_and_extract(dest_file_path, second_target_dir=None):
+    extraction_functions = {
+        '.gz': extract_tar_with_progress,
+        '.zip': extract_zip_file,
+        '.7z': extract_7zip_file
+    }
+
+    target_dir = second_target_dir if second_target_dir else zip_path
+
+    for extension, extraction_function in extraction_functions.items():
+        if extension in dest_file_path:
+            print_extracting_file_name(dest_file_path)
+            extraction_function(dest_file_path, target_dir)
+            break
+
+
+def loop_over_all_files_in_given_dir(source_dir):
     global old_file
     for file in os.listdir(source_dir):
         file_name_str = str(file)
@@ -195,5 +213,5 @@ def loop_over_all_file_in_given_dir(source_dir):
 while True:
     source_directory = args.source_dir
     if dir_exists(source_directory):
-        loop_over_all_file_in_given_dir(source_directory)
+        loop_over_all_files_in_given_dir(source_directory)
     sleep(5)
