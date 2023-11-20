@@ -6,10 +6,10 @@ import zipfile
 from time import sleep
 from ask_question_and_perform_action import ask_question_and_perform_action
 from write_msg_to_desktop import notify  # , speek
-from verbose import checkIfVerbose
+import subprocess
 from check_if_dir_exists import dir_exists
 import pathlib
-from default_directory import path_to_default_directory
+from default_directory import path_to_default_target_directory
 import argparse
 import tarfile
 from tqdm import tqdm
@@ -22,12 +22,14 @@ def parse_command_line():
     global args
     # Parse the command-line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--target_dir', type=str, nargs='?', default=path_to_default_directory,
+    parser.add_argument('-t', '--target_dir', type=str, nargs='?', default=path_to_default_target_directory,
                         help="The main target directory e.g. '/home/z002wydr/target_directory/'")
-    parser.add_argument('--source_dir', type=str, nargs='?', default=pathOfDirToLookFor,
+    parser.add_argument('-s', '--source_dir', type=str, nargs='?', default=pathOfDirToLookFor,
                         help="The source directory to clean up e.g. '/home/z002wydr/Downloads'")
     parser.add_argument('-v', '--verbose', help='verbose mode including notifications', action='store_true')
     parser.add_argument('-x', "--extract", help='try to extract if possible', action='store_true')
+    parser.add_argument('-o', "--open_dir", help='open target directory after copying file', action='store_true')
+    parser.add_argument('-y', "--yes", help='say yes for everything', action='store_true')
     args = parser.parse_args()
     return args
 
@@ -89,33 +91,41 @@ file_extension_paths = {
 }
 
 
-def extruct_filename_from_path_wihtout_extension(file_path):
+def extract_filename_from_path_without_extension(file_path):
     path = pathlib.Path(file_path)
     file_name_without_extension = path.stem
     return file_name_without_extension
 
 
+def delete_file(dest_file_path):
+    if os.path.isdir(dest_file_path):
+        shutil.rmtree(dest_file_path)
+    else:
+        os.remove(dest_file_path)
+    if verbose:
+        notify('Cleanup Script', 'File: ' + dest_file_path + ' was removed')
+        print('File: ' + dest_file_path + ' was removed')
+
+
 def ask_and_delete_file(dest_file_path):
     delete_options = input('Sure you want to remove this file: ' + dest_file_path + ' ???\n' + 'y/n' + '\n')
     if "yes" in delete_options or "y" in delete_options:
-        if os.path.isdir(dest_file_path):
-            shutil.rmtree(dest_file_path)
-        else:
-            os.remove(dest_file_path)
-        if verbose:
-            notify('Cleanup Script', 'File: ' + dest_file_path + ' was removed')
-            print('File: ' + dest_file_path + ' was removed')
+        delete_file(dest_file_path)
 
 
 def extract_zip_file(file_path, output_path):
     with zipfile.ZipFile(file_path) as zf:
         for member in tqdm(zf.infolist(), desc='Extracting '):
             try:
-                zf.extract(member, output_path)
+                file_name_without_extension = extract_filename_from_path_without_extension(file_path)
+                zf.extract(member, output_path + file_name_without_extension)
             except zipfile.error as e:
                 pass
     if verbose:
-        ask_and_delete_file(file_path)
+        if args.yes:
+            delete_file(file_path)
+        else:
+            ask_and_delete_file(file_path)
 
 
 def extract_7zip_file(file_path, output_path):
@@ -139,7 +149,10 @@ def extract_7zip_file(file_path, output_path):
                 extract_7zip_file(output_path + file_name, output_path)
         if verbose:
             print("finished!")
-            ask_and_delete_file(file_path)
+            if args.yes:
+                delete_file(file_path)
+            else:
+                ask_and_delete_file(file_path)
 
 
 def extract_tar_with_progress(tar_file_path, output_path):
@@ -148,12 +161,15 @@ def extract_tar_with_progress(tar_file_path, output_path):
         total_files = len(members)
 
         for member in tqdm(members, desc="Extracting", unit="file"):
-            file_name_without_extension = extruct_filename_from_path_wihtout_extension(tar_file_path)
+            file_name_without_extension = extract_filename_from_path_without_extension(tar_file_path)
             dest_path = output_path + file_name_without_extension
             tar.extract(member, dest_path)
             check_for_extension_and_extract(dest_path + "/" + member.name, (dest_path + "/" + member.name).rsplit('.')[0] + '.' + (dest_path + "/" + member.name).rsplit('.')[1])
     if verbose:
-        ask_and_delete_file(tar_file_path)
+        if args.yes:
+            delete_file(tar_file_path)
+        else:
+            ask_and_delete_file(tar_file_path)
 
 
 def print_extracting_file_name(dest_file_path):
@@ -163,10 +179,24 @@ def print_extracting_file_name(dest_file_path):
         print("Extracting file name " + dest_file_path + " ...\n")
 
 
+def open_directory_in_file_explorer(directory):
+    try:
+        # For Ubuntu (or other GNOME-based distributions)
+        subprocess.run(["xdg-open", directory])
+    except FileNotFoundError:
+        print("Error: xdg-open command not found.")
+    except Exception as e:
+        print("Error:", str(e))
+
+
 def move_files_and_extract(source_file_path, dest_file_path):
     shutil.move(source_file_path, dest_file_path)
-    if args.extract:
+    file_name_without_extension = extract_filename_from_path_without_extension(source_file_path)
+    if args.extract and 'platform_' not in file_name_without_extension:
         check_for_extension_and_extract(dest_file_path)
+    if args.open_dir:
+        target_directory = os.path.dirname(dest_file_path)
+        open_directory_in_file_explorer(target_directory)
 
 
 def check_for_extension_and_extract(dest_file_path, second_target_dir=None):
@@ -205,7 +235,7 @@ def loop_over_all_files_in_given_dir(source_dir):
         if os.path.exists(dest_file):
             if verbose:
                 notify('Cleanup Script', 'File: ' + dest_file + ' already exists on dest:' + dest)
-            ask_question_and_perform_action(source_file, dest, file_name_str, verbose, move_files_and_extract)
+            ask_question_and_perform_action(source_file, dest, file_name_str, verbose, lambda_func=move_files_and_extract, yes=args.yes)
         else:
             move_files_and_extract(source_file, dest_file)
 

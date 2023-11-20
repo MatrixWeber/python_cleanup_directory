@@ -2,15 +2,14 @@ import subprocess, os, platform
 from write_msg_to_desktop import notify
 from verbose import checkIfVerbose
 import shutil
-from default_directory import path_to_default_directory
+from default_directory import path_to_default_target_directory
 
 chooseString = '''Choose option: 'y' to remove (replace), 'n' to hold (but make a copy), 'o' open to inspect with a default program, 'r' to rename file (but keep the origin) or 'a' to remove (replace) all in a directory'''
 
 
-def ask_question_and_perform_action(source_file, dest_directory, file_name, verbose, lambda_func=None,
-                                    say_yes_to_string='/][??05436'):
+def ask_question_and_perform_action(source_file, dest_directory, file_name, verbose, lambda_func=None, yes=False, say_yes_to_string='/][??05436'):
     dest_file = dest_directory + file_name
-    if say_yes_to_string in file_name:
+    if say_yes_to_string in file_name or yes:
         delete_options = 'y'
     else:
         if verbose:
@@ -35,7 +34,7 @@ def ask_question_and_perform_action(source_file, dest_directory, file_name, verb
             os.startfile(dest_file)
         else:  # linux variants
             subprocess.call(('xdg-open', dest_file))
-        ask_question_and_perform_action(source_file, dest_directory, file_name, lambda_func, verbose)
+        ask_question_and_perform_action(source_file, dest_directory, file_name, verbose, lambda_func=lambda_func, yes=yes)
     elif "r" in delete_options or "rename" in delete_options:
         if verbose:
             notify('Cleanup Script', 'Enter new file name!\n')
@@ -58,4 +57,4 @@ def ask_question_and_perform_action(source_file, dest_directory, file_name, verb
                 notify('Cleanup Script', 'File ' + source_file + ' was moved to dir: ' + dest_file + "_copy")
     elif "a" in delete_options:
         say_yes_to_string = dest_file
-        ask_question_and_perform_action(source_file, dest_directory, file_name, verbose, lambda_func, say_yes_to_string)
+        ask_question_and_perform_action(source_file, dest_directory, file_name, verbose, lambda_func=lambda_func, yes=yes, say_yes_to_string=say_yes_to_string)
