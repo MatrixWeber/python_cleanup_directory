@@ -6,16 +6,17 @@ import zipfile
 from time import sleep
 from ask_question_and_perform_action import ask_question_and_perform_action
 from write_msg_to_desktop import notify  # , speek
+from verbose import checkIfVerbose
 import subprocess
 from check_if_dir_exists import dir_exists
 import pathlib
-from default_directory import path_to_default_target_directory
+from default_directory import path_to_default_target_directory, home_dir
 import argparse
 import tarfile
 from tqdm import tqdm
 import py7zr
 
-pathOfDirToLookFor = '/home/z002wydr/Downloads/'
+pathOfDirToLookFor = home_dir + '/Downloads/'
 
 
 def parse_command_line():
