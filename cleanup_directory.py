@@ -24,9 +24,9 @@ def parse_command_line():
     # Parse the command-line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--target_dir', type=str, nargs='?', default=path_to_default_target_directory,
-                        help="The main target directory e.g. '/home/z002wydr/target_directory/'")
+                        help="The main target directory e.g. '/home/z002wydr/cleanup_directory/ (which is default)'")
     parser.add_argument('-s', '--source_dir', type=str, nargs='?', default=pathOfDirToLookFor,
-                        help="The source directory to clean up e.g. '/home/z002wydr/Downloads'")
+                        help="The source directory to clean up e.g. '/home/z002wydr/Downloads (which is default)'")
     parser.add_argument('-v', '--verbose', help='verbose mode including notifications', action='store_true')
     parser.add_argument('-x', "--extract", help='try to extract if possible', action='store_true')
     parser.add_argument('-o', "--open_dir", help='open target directory after copying file', action='store_true')
