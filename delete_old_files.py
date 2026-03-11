@@ -7,7 +7,7 @@ from check_if_dir_exists import dir_exists
 from default_directory import path_to_default_target_directory
 import argparse
 
-default_date = '2023-09-01-15-30-00'
+default_date = '2025-12-31-15-30-00'
 
 def parse_command_line():
     global args
@@ -61,12 +61,19 @@ if dir_exists(dirPath):
                         if dayMonthYearAndTimeOfFile < monthAndYear:
                             print("Last Modified Time : ", modificationTime)
                             ask_question_and_perform_action(None, destFilePath + "/", file_dest_2, args.verbose, yes=args.yes)
+                    if os.path.isdir(destFilePath) and not os.listdir(destFilePath):
+                        print(f"Empty directory: {destFilePath}")
+                        ask_question_and_perform_action(None, destFile + "/", file_dest, args.verbose, yes=args.yes)
                 else:
                     dayMonthYearAndTimeOfFile, modificationTime = getDayMonthYearAndTimeOfFile(destFile + "/" + file_dest)
                     if dayMonthYearAndTimeOfFile < monthAndYear:
                         print("Last Modified Time : ", modificationTime)
                         ask_question_and_perform_action(None, destFile + "/", file_dest, args.verbose, yes=args.yes)
-        dayMonthYearAndTimeOfFile, modificationTime = getDayMonthYearAndTimeOfFile(destFile)
-        if dayMonthYearAndTimeOfFile < monthAndYear:
-            print("Last Modified Time : ", modificationTime)
-            ask_question_and_perform_action(None, dirPath, fileNameStr, args.verbose,  yes=args.yes)
+            if os.path.isdir(destFile) and not os.listdir(destFile):
+                print(f"Empty directory: {destFile}")
+                ask_question_and_perform_action(None, dirPath, fileNameStr, args.verbose, yes=args.yes)
+        if os.path.exists(destFile):
+            dayMonthYearAndTimeOfFile, modificationTime = getDayMonthYearAndTimeOfFile(destFile)
+            if dayMonthYearAndTimeOfFile < monthAndYear:
+                print("Last Modified Time : ", modificationTime)
+                ask_question_and_perform_action(None, dirPath, fileNameStr, args.verbose, yes=args.yes)

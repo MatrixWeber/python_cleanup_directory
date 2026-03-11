@@ -29,7 +29,8 @@ def parse_command_line():
                         help="The source directory to clean up e.g. '/home/z002wydr/Downloads (which is default)'")
     parser.add_argument('-v', '--verbose', help='verbose mode including notifications', action='store_true')
     parser.add_argument('-x', "--extract", help='try to extract if possible', action='store_true')
-    parser.add_argument('-o', "--open_dir", help='open target directory after copying file', action='store_true')
+    parser.add_argument('-d', "--open_dir", help='open target directory after copying file', action='store_true')
+    parser.add_argument('-o', '--open_file', help='open file after moving (skip for zip files)', action='store_true')
     parser.add_argument('-y', "--yes", help='say yes for everything', action='store_true')
     args = parser.parse_args()
     return args
@@ -65,6 +66,9 @@ old_file = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
 file_extension_paths = {
     '.png': picture_path,
     '.jpg': picture_path,
+    '.jpeg': picture_path,
+    '.HEIC': picture_path,
+    '.svg': picture_path,
     '.zip': zip_path,
     '.7z': zip_path,
     '.gz': zip_path,
@@ -180,7 +184,28 @@ def print_extracting_file_name(dest_file_path):
         print("Extracting file name " + dest_file_path + " ...\n")
 
 
+def is_directory_open(directory):
+    try:
+        # List all processes and their arguments
+        result = subprocess.run(["ps", "aux"], stdout=subprocess.PIPE, text=True)
+        processes = result.stdout.splitlines()
+
+        # Check if the specific directory is in the arguments of any file explorer process
+        for process in processes:
+            if any(explorer in process for explorer in ["nautilus", "dolphin", "thunar", "pcmanfm"]):
+                if directory in process:
+                    return True
+        return False
+    except Exception as e:
+        print("Error checking file explorer process:", str(e))
+        return False
+
 def open_directory_in_file_explorer(directory):
+    if is_directory_open(directory):
+        if verbose:
+            print(f"The directory {directory} is already open.")
+        return
+
     try:
         # For Ubuntu (or other GNOME-based distributions)
         subprocess.run(["xdg-open", directory])
@@ -195,6 +220,13 @@ def move_files_and_extract(source_file_path, dest_file_path):
     file_name_without_extension = extract_filename_from_path_without_extension(source_file_path)
     if args.extract and 'platform_' not in file_name_without_extension:
         check_for_extension_and_extract(dest_file_path)
+    # Datei nach dem Verschieben öffnen, wenn gewünscht und keine Archiv-/Paketdatei
+    skip_exts = ('.zip', '.7z', '.gz', '.deb', '.sof', '.sopcinfo', '.rpm')
+    if args.open_file and not dest_file_path.lower().endswith(skip_exts):
+        try:
+            subprocess.Popen(["xdg-open", dest_file_path])
+        except Exception as e:
+            print(f"Fehler beim Öffnen der Datei {dest_file_path}: {e}")
     if args.open_dir:
         target_directory = os.path.dirname(dest_file_path)
         open_directory_in_file_explorer(target_directory)
@@ -220,8 +252,8 @@ def loop_over_all_files_in_given_dir(source_dir):
     global old_file
     for file in os.listdir(source_dir):
         file_name_str = str(file)
-        file_extension = pathlib.Path(file_name_str).suffix.lower()
-        if '.crdownload' in file_extension:
+        file_extension = pathlib.Path(file_name_str).suffix
+        if '.crdownload' in file_extension or '.org.chromium' in file_name_str:
             if old_file not in file_name_str:
                 if verbose:
                     notify('Cleanup Script',
@@ -229,7 +261,7 @@ def loop_over_all_files_in_given_dir(source_dir):
                 old_file = file_name_str
             continue
         source_file = source_dir + '/' + file_name_str
-        dest = file_extension_paths.get(file_extension.lower(), misc_path)
+        dest = file_extension_paths.get(file_extension, misc_path)
         if not os.path.exists(dest):
             os.makedirs(dest)
         dest_file = dest + "/" + file_name_str
